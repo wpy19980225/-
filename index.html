@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奖品信息查询</title>
+    <!-- 引入 SheetJS 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #34495e;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #4a90e2;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #357abd;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .info-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: white;
+        }
+        .info-item strong {
+            color: #2c3e50;
+            min-width: 100px;
+            display: inline-block;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>奖品信息查询</h1>
+        <div class="search-box">
+            <label for="phoneNumber">请输入手机号码：</label>
+            <input type="text" id="phoneNumber" placeholder="请输入要查询的手机号码" autocomplete="off">
+            <button onclick="searchInfo()">立即查询</button>
+        </div>
+        <div id="results">请输入手机号码进行查询</div>
+    </div>
+
+    <script>
+        let database = null;
+        const columnConfig = {
+            phone: '电话',
+            prize: '奖品名称',
+            status: '订单状态',
+            tracking: '快递单号',
+            date: '日期'
+        };
+
+        window.addEventListener('load', function() {
+            loadDatabase();
+        });
+
+        document.getElementById('phoneNumber').addEventListener('keypress', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchInfo();
+            }
+        });
+
+        async function loadDatabase() {
+            try {
+                // 使用相对路径加载文件
+                const response = await fetch('./database.xlsx');
+                if (!response.ok) {
+                    console.error('数据文件加载失败:', response.status, response.statusText);
+                    throw new Error('数据文件加载失败');
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: true });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
+
+                if (jsonData.length === 0) {
+                    throw new Error("数据文件为空或无法解析表头。");
+                }
+
+                const headers = jsonData[0].map(h => String(h).trim());
+                const phoneColIndex = headers.indexOf(columnConfig.phone);
+                const prizeColIndex = headers.indexOf(columnConfig.prize);
+                const statusColIndex = headers.indexOf(columnConfig.status);
+                const trackingColIndex = headers.indexOf(columnConfig.tracking);
+                const dateColIndex = headers.indexOf(columnConfig.date);  // 新增日期列索引
+
+                let missingCols = [];
+                if (phoneColIndex === -1) missingCols.push(columnConfig.phone);
+                if (prizeColIndex === -1) missingCols.push(columnConfig.prize);
+                if (statusColIndex === -1) missingCols.push(columnConfig.status);
+                if (trackingColIndex === -1) missingCols.push(columnConfig.tracking);
+                if (dateColIndex === -1) missingCols.push(columnConfig.date);  // 检查日期列
+
+                if (missingCols.length > 0) {
+                    throw new Error(`数据文件中缺少以下列: ${missingCols.join(', ')}`);
+                }
+
+                database = jsonData.slice(1).map(row => {
+                    let record = {};
+                    record[columnConfig.phone] = row[phoneColIndex] !== undefined ? String(row[phoneColIndex]).trim() : '';
+                    record[columnConfig.prize] = row[prizeColIndex] !== undefined ? String(row[prizeColIndex]).trim() : '';
+                    record[columnConfig.status] = row[statusColIndex] !== undefined ? String(row[statusColIndex]).trim() : '';
+                    record[columnConfig.tracking] = row[trackingColIndex] !== undefined ? String(row[trackingColIndex]).trim() : '';
+                    record[columnConfig.date] = row[dateColIndex] !== undefined ? String(row[dateColIndex]).trim() : '';  // 添加日期
+                    return record;
+                });
+
+                console.log('数据加载成功');
+            } catch (error) {
+                console.error("数据加载错误:", error);
+                document.getElementById('results').innerHTML = `<span class="error">数据加载失败：${error.message}</span>`;
+            }
+        }
+
+        function searchInfo() {
+            const resultsDiv = document.getElementById('results');
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+
+            if (!database) {
+                resultsDiv.innerHTML = `<span class="error">系统未就绪，请稍后再试</span>`;
+                return;
+            }
+
+            if (!phoneNumber) {
+                resultsDiv.innerHTML = `<span class="error">请输入要查询的手机号码</span>`;
+                return;
+            }
+
+            // 查找所有匹配的记录
+            const foundRecords = database.filter(record => String(record[columnConfig.phone]).trim() === phoneNumber);
+
+            if (foundRecords.length > 0) {
+                // 按日期排序
+                foundRecords.sort((a, b) => {
+                    const dateA = a[columnConfig.date] || '';
+                    const dateB = b[columnConfig.date] || '';
+                    
+                    // 创建日期对象进行比较
+                    const parseDate = (dateStr) => {
+                        if (!dateStr) return new Date(0);
+                        return new Date(dateStr);
+                    };
+                    
+                    // 降序排列（从近到远）
+                    return parseDate(dateB) - parseDate(dateA);
+                });
+
+                let html = `
+                    <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
+                    <hr>
+                `;
+
+                // 显示所有记录
+                foundRecords.forEach((record, index) => {
+                    const date = record[columnConfig.date] || "暂无日期";
+                    const prize = record[columnConfig.prize] || "暂无";
+                    const status = record[columnConfig.status] || "暂无";
+                    const tracking = record[columnConfig.tracking] || "暂无";
+
+                    html += `
+                        ${index > 0 ? '<hr>' : ''}
+                        <div class="info-item"><strong>日期:</strong> ${date}</div>
+                        <div class="info-item"><strong>奖品名称:</strong> ${prize}</div>
+                        <div class="info-item"><strong>订单状态:</strong> ${status}</div>
+                        <div class="info-item"><strong>快递单号:</strong> ${tracking}</div>
+                    `;
+                });
+
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
+                    <hr>
+                    <div class="error">未找到该手机号的中奖记录</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
