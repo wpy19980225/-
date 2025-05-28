@@ -8,79 +8,100 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary-color: #A8B2AC;      /* 莫兰迪灰绿 */
-            --primary-dark: #94A19A;       /* 深莫兰迪灰绿 */
-            --secondary-color: #5C6360;    /* 深灰 */
-            --success-color: #D4B8A5;      /* 莫兰迪粉棕 */
-            --error-color: #C1797F;        /* 莫兰迪红 */
-            --background-color: #F0F2F1;   /* 浅灰白 */
-            --card-background: #ffffff;    /* 纯白 */
-            --border-radius: 12px;
-            --box-shadow: 0 10px 30px rgba(168, 178, 172, 0.1);
-            --transition: all 0.3s ease;
+            --primary-color: #4a90e2;      /* 主要蓝色 */
+            --primary-light: #64b5f6;     /* 浅蓝色 */
+            --secondary-color: #2c3e50;    /* 深蓝灰 */
+            --accent-color: #3498db;      /* 亮蓝色 */
+            --error-color: #e74c3c;        /* 错误红 */
+            --background-color: #ecf0f1;   /* 浅灰蓝白 */
+            --text-color: #2c3e50;        /* 深蓝灰文字 */
+            --border-radius: 16px;
+            --box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            background: linear-gradient(135deg, #F0F2F1 0%, #E6E9E8 100%);
-            font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'PingFang SC', 'Noto Sans SC', -apple-system, sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        h1 {
-            color: var(--primary-color);
-            font-weight: 500;
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 95%;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
         }
 
-        .container::before {
-            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            background-color: white;
+            transition: var(--transition);
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        select:hover, input[type="text"]:hover {
+            border-color: var(--primary-light);
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+            outline: none;
         }
 
         button {
-            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
             font-weight: 500;
+            width: 100%;
+        }
+
+        button:hover {
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
         }
 
         .info-item {
             border-left: 4px solid var(--primary-color);
-            font-weight: 400;
+            padding: 10px 15px;
+            margin: 10px 0;
+            background: rgba(74, 144, 226, 0.05);
         }
-    }
 
-    body {
-        background: linear-gradient(135deg, #F0F2F1 0%, #E6E9E8 100%);
-        font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, sans-serif;
-    }
-
-    h1 {
-        color: var(--primary-color);
-        font-weight: 500;
-    }
-
-    .container::before {
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
-    }
-
-    button {
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
-        font-weight: 500;
-    }
-
-    .info-item {
-        border-left: 4px solid var(--primary-color);
-        font-weight: 400;
-    }
-</style>
-
-<script>
-    const columnConfig = {
-        phone: "电话",            // 更新为"电话"
-        prize: "奖品名称",
-        status: "订单状态",
-        tracking: "快递单号",
-        date: "日期"
-    };
-
-    loadDatabase();
-</script>
+        .error {
+            color: var(--error-color);
+            background-color: rgba(231, 76, 60, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -101,6 +122,8 @@
         </div>
         <div id="results">请输入手机号码进行查询</div>
     </div>
+</body>
+</html>
 
         <script>
             // 修改数据库结构以支持多个sheet
@@ -160,34 +183,34 @@
                             });
                         }
                     });
-
+            
                     console.log('数据加载成功');
                 } catch (error) {
                     console.error("数据加载错误:", error);
                     document.getElementById('results').innerHTML = `<span class="error">数据加载失败：${error.message}</span>`;
                 }
             }
-
+            
             function searchInfo() {
                 const resultsDiv = document.getElementById('results');
                 const platform = document.getElementById('platform').value;
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
-
+            
                 if (!database[platform]) {
                     resultsDiv.innerHTML = `<span class="error">系统未就绪，请稍后再试</span>`;
                     return;
                 }
-
+            
                 if (!phoneNumber) {
                     resultsDiv.innerHTML = `<span class="error">请输入要查询的手机号码</span>`;
                     return;
                 }
-
+            
                 // 在选定的平台数据中查找记录
                 const foundRecords = database[platform].filter(record => 
                     String(record[columnConfig.phone]).trim() === phoneNumber
                 );
-
+            
                 if (foundRecords.length > 0) {
                     // 按日期排序
                     foundRecords.sort((a, b) => {
@@ -203,20 +226,20 @@
                         // 降序排列（从近到远）
                         return parseDate(dateB) - parseDate(dateA);
                     });
-
+            
                     let html = `
                         <div class="info-item">查询平台: <strong>${platform}</strong></div>
                         <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
                         <hr>
                     `;
-
+            
                     // 显示所有记录
                     foundRecords.forEach((record, index) => {
                         const date = record[columnConfig.date] || "暂无日期";
                         const prize = record[columnConfig.prize] || "暂无";
                         const status = record[columnConfig.status] || "暂无";
                         const tracking = record[columnConfig.tracking] || "暂无";
-
+            
                         html += `
                             ${index > 0 ? '<hr>' : ''}
                             <div class="info-item"><strong>日期:</strong> ${date}</div>
@@ -225,7 +248,7 @@
                             <div class="info-item"><strong>快递单号:</strong> ${tracking}</div>
                         `;
                     });
-
+            
                     resultsDiv.innerHTML = html;
                 } else {
                     resultsDiv.innerHTML = `
@@ -239,41 +262,3 @@
         </script>
 </body>
 </html>
-
-<style>
-    select.form-control {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        font-size: 16px;
-        margin-bottom: 15px;
-        background-color: white;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    select.form-control:focus {
-        border-color: #4a90e2;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-    }
-
-    select.form-control:hover {
-        border-color: #4a90e2;
-    }
-</style>
-
-<script>
-    // 在database定义之前添加以下代码
-    const columnConfig = {
-        phone: "手机号",
-        prize: "奖品名称",
-        status: "订单状态",
-        tracking: "快递单号",
-        date: "日期"
-    };
-
-    // 在database定义之后立即调用loadDatabase
-    loadDatabase();
-</script>
