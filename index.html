@@ -5,273 +5,250 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>奖品信息查询</title>
     <!-- 引入 SheetJS 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --primary-color: #4a90e2;      /* 主要蓝色 */
-            --primary-light: #64b5f6;     /* 浅蓝色 */
-            --secondary-color: #2c3e50;    /* 深蓝灰 */
-            --accent-color: #3498db;      /* 亮蓝色 */
-            --error-color: #e74c3c;        /* 错误红 */
-            --background-color: #ecf0f1;   /* 浅灰蓝白 */
-            --text-color: #2c3e50;        /* 深蓝灰文字 */
-            --border-radius: 16px;
-            --box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
-            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: 'PingFang SC', 'Noto Sans SC', -apple-system, sans-serif;
-            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
             line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 2.5rem;
-            max-width: 600px;
-            width: 95%;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        select, input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
+            background-color: #fff;
+            padding: 25px;
             border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            background-color: white;
-            transition: var(--transition);
-            cursor: pointer;
-            color: var(--text-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 30px auto;
         }
-
-        select:hover, input[type="text"]:hover {
-            border-color: var(--primary-light);
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
         }
-
-        select:focus, input[type="text"]:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
-            outline: none;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
         }
-
+        input[type="file"],
+        input[type="text"],
         button {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box; /* Important for width calculation */
+        }
+        input[type="file"] {
+            border: 1px dashed #ccc;
+            padding: 10px;
+        }
+        button {
+            background-color: #007bff;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
             cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
-
         button:hover {
-            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
-            transform: translateY(-2px);
+            background-color: #0056b3;
         }
-
-        .info-item {
-            border-left: 4px solid var(--primary-color);
-            padding: 10px 15px;
-            margin: 10px 0;
-            background: rgba(74, 144, 226, 0.05);
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            white-space: pre-wrap; /* Preserve line breaks and spaces */
+            font-family: 'Courier New', Courier, monospace;
         }
-
+        .file-info {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
         .error {
-            color: var(--error-color);
-            background-color: rgba(231, 76, 60, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .info-item {
+            margin-bottom: 8px;
+        }
+        .info-item strong {
+            display: inline-block;
+            width: 100px; /* Adjust as needed */
+            color: #333;
+        }
+        .record {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .record hr {
+            margin: 15px 0;
+            border: 0;
+            border-top: 1px solid #dee2e6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>奖品信息查询</h1>
-        <div class="search-box">
-            <div class="form-group">
-                <label for="platform">请选择平台：</label>
-                <select id="platform">
-                    <option value="小红书">小红书</option>
-                    <option value="抖音">抖音</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="phoneNumber">请输入手机号码：</label>
-                <input type="text" id="phoneNumber" placeholder="请输入要查询的手机号码" autocomplete="off">
-            </div>
-            <button onclick="searchInfo()">立即查询</button>
+        <h1>奖品信息查询工具</h1>
+
+        <div style="margin-bottom: 20px;">
+            <label for="platform">选择平台:</label>
+            <select id="platform" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <option value="小红书">小红书</option>
+                <option value="抖音">抖音</option>
+            </select>
         </div>
-        <div id="results">请输入手机号码进行查询</div>
+
+        <label for="phoneNumber">输入手机号码:</label>
+        <input type="text" id="phoneNumber" placeholder="请输入手机号">
+
+        <button onclick="searchInfo()">查询</button>
+
+        <div id="resultsTitle" style="font-weight: bold; margin-top: 20px; display: none;">查询结果:</div>
+        <div id="results">加载中，请稍候...</div>
     </div>
+
     <script>
-            // 添加列配置
-            const columnConfig = {
-                phone: '手机号码',
-                prize: '奖品名称',
-                status: '订单状态',
-                tracking: '快递单号',
-                date: '日期'
-            };
+        let database = null;
+        let selectedPlatform = "小红书";
+        
+        // 固定列名配置
+        const columnConfig = {
+            phone: '手机号码',
+            prize: '奖品',
+            status: '订单状态',
+            tracking: '物流单号',
+            date: '日期'
+        };
+
+        document.getElementById('platform').addEventListener('change', function() {
+            selectedPlatform = this.value;
+            handleFile(); // 切换平台时重新加载数据
+        });
+
+        document.getElementById('phoneNumber').addEventListener('keypress', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchInfo();
+            }
+        });
+
+        function handleFile() {
+            const resultsDiv = document.getElementById('results');
             
-            // 修改数据库结构以支持多个sheet
-            let database = {
-                '小红书': null,
-                '抖音': null
-            };
+            resultsDiv.textContent = '正在加载数据，请稍候...';
             
-            async function loadDatabase() {
-                try {
-                    // 修改为本地文件路径
-                    const response = await fetch('./database.xlsx');
+            // 使用fetch加载database.xlsx
+            fetch('database.xlsx')
+                .then(response => {
                     if (!response.ok) {
-                        throw new Error('数据文件加载失败');
+                        throw new Error('无法加载数据文件');
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[selectedPlatform];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', rawNumbers: false });
+                    
+                    if (jsonData.length === 0) {
+                        throw new Error("文件为空或无法解析表头。");
                     }
                     
-                    const arrayBuffer = await response.arrayBuffer();
-                    const data = new Uint8Array(arrayBuffer);
-                    
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: true });
-                    
-                    // 分别加载两个sheet的数据
-                    ['小红书', '抖音'].forEach(sheetName => {
-                        if (workbook.SheetNames.includes(sheetName)) {
-                            const worksheet = workbook.Sheets[sheetName];
-                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
-                            
-                            if (jsonData.length === 0) {
-                                throw new Error(`${sheetName}数据为空或无法解析表头。`);
-                            }
-
-                            const headers = jsonData[0].map(h => String(h).trim());
-                            const phoneColIndex = headers.indexOf(columnConfig.phone);
-                            const prizeColIndex = headers.indexOf(columnConfig.prize);
-                            const statusColIndex = headers.indexOf(columnConfig.status);
-                            const trackingColIndex = headers.indexOf(columnConfig.tracking);
-                            const dateColIndex = headers.indexOf(columnConfig.date);  // 新增日期列索引
-
-                            let missingCols = [];
-                            if (phoneColIndex === -1) missingCols.push(columnConfig.phone);
-                            if (prizeColIndex === -1) missingCols.push(columnConfig.prize);
-                            if (statusColIndex === -1) missingCols.push(columnConfig.status);
-                            if (trackingColIndex === -1) missingCols.push(columnConfig.tracking);
-                            if (dateColIndex === -1) missingCols.push(columnConfig.date);  // 检查日期列
-
-                            if (missingCols.length > 0) {
-                                throw new Error(`数据文件中缺少以下列: ${missingCols.join(', ')}`);
-                            }
-
-                            database[sheetName] = jsonData.slice(1).map(row => {
-                                let record = {};
-                                record[columnConfig.phone] = row[phoneColIndex] !== undefined ? String(row[phoneColIndex]).trim() : '';
-                                record[columnConfig.prize] = row[prizeColIndex] !== undefined ? String(row[prizeColIndex]).trim() : '';
-                                record[columnConfig.status] = row[statusColIndex] !== undefined ? String(row[statusColIndex]).trim() : '';
-                                record[columnConfig.tracking] = row[trackingColIndex] !== undefined ? String(row[trackingColIndex]).replace(/\.?0+$/, '') : '';
-                                record[columnConfig.date] = row[dateColIndex] !== undefined ? String(row[dateColIndex]).trim() : '';
-                                return record;
-                            });
-                        }
+                    // 从第二行开始处理数据
+                    database = jsonData.slice(1).map(row => {
+                        const headers = jsonData[0];
+                        let record = {};
+                        headers.forEach((header, index) => {
+                            record[header.trim()] = row[index] ? String(row[index]).trim() : '';
+                        });
+                        return record;
                     });
-            
-                    console.log('数据加载成功');
-                    // 添加加载成功的提示
-                    document.getElementById('results').innerHTML = '系统已就绪，请输入手机号码进行查询';
-                } catch (error) {
+                    
+                    resultsDiv.textContent = '数据加载成功，请输入手机号查询。';
+                })
+                .catch(error => {
                     console.error("数据加载错误:", error);
-                    document.getElementById('results').innerHTML = `<span class="error">数据加载失败：${error.message}</span>`;
-                }
+                    resultsDiv.innerHTML = `<span class="error">数据加载失败: ${error.message}</span>`;
+                    database = null;
+                });
+        }
+
+        // 页面加载时自动加载数据
+        document.addEventListener('DOMContentLoaded', function() {
+            handleFile();
+        });
+
+        function searchInfo() {
+            const resultsDiv = document.getElementById('results');
+            const resultsTitleDiv = document.getElementById('resultsTitle');
+            
+            if (!database) {
+                resultsDiv.innerHTML = `<span class="error">请等待数据加载完成！</span>`;
+                resultsTitleDiv.style.display = 'block';
+                return;
             }
-            
-            function searchInfo() {
-                const resultsDiv = document.getElementById('results');
-                const platform = document.getElementById('platform').value;
-                const phoneNumber = document.getElementById('phoneNumber').value.trim();
-            
-                if (!database[platform]) {
-                    resultsDiv.innerHTML = `<span class="error">系统未就绪，请稍后再试</span>`;
-                    return;
-                }
-            
-                if (!phoneNumber) {
-                    resultsDiv.innerHTML = `<span class="error">请输入要查询的手机号码</span>`;
-                    return;
-                }
-            
-                // 在选定的平台数据中查找记录
-                const foundRecords = database[platform].filter(record => 
-                    String(record[columnConfig.phone]).trim() === phoneNumber
-                );
-            
-                if (foundRecords.length > 0) {
-                    // 按日期排序
-                    foundRecords.sort((a, b) => {
-                        const dateA = a[columnConfig.date] || '';
-                        const dateB = b[columnConfig.date] || '';
-                        
-                        // 创建日期对象进行比较
-                        const parseDate = (dateStr) => {
-                            if (!dateStr) return new Date(0);
-                            return new Date(dateStr);
-                        };
-                        
-                        // 降序排列（从近到远）
-                        return parseDate(dateB) - parseDate(dateA);
-                    });
-            
-                    let html = `
-                        <div class="info-item">查询平台: <strong>${platform}</strong></div>
-                        <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
-                        <hr>
-                    `;
-            
-                    // 显示所有记录
-                    foundRecords.forEach((record, index) => {
-                        const date = record[columnConfig.date] || "暂无日期";
-                        const prize = record[columnConfig.prize] || "暂无";
-                        const status = record[columnConfig.status] || "暂无";
-                        const tracking = record[columnConfig.tracking] || "暂无";
-            
-                        html += `
-                            ${index > 0 ? '<hr>' : ''}
-                            <div class="info-item"><strong>日期:</strong> ${date}</div>
+
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            if (!phoneNumber) {
+                resultsDiv.innerHTML = `<span class="error">请输入要查询的手机号码！</span>`;
+                resultsTitleDiv.style.display = 'block';
+                return;
+            }
+
+            const foundRecords = database.filter(record => 
+                String(record[columnConfig.phone]).trim() === phoneNumber
+            );
+
+            // 按日期排序（从近到远）
+            foundRecords.sort((a, b) => {
+                return new Date(b[columnConfig.date]) - new Date(a[columnConfig.date]);
+            });
+
+            resultsTitleDiv.style.display = 'block';
+            if (foundRecords.length > 0) {
+                let resultsHTML = '';
+                foundRecords.forEach(record => {
+                    const date = record[columnConfig.date] || "无";
+                    const prize = record[columnConfig.prize] || "无";
+                    const status = record[columnConfig.status] || "无";
+                    const tracking = record[columnConfig.tracking] || "无";
+                    
+                    resultsHTML += `
+                        <div class="record">
+                            <div class="info-item">日期: <strong>${date}</strong></div>
                             <div class="info-item"><strong>奖品名称:</strong> ${prize}</div>
                             <div class="info-item"><strong>订单状态:</strong> ${status}</div>
                             <div class="info-item"><strong>快递单号:</strong> ${tracking}</div>
-                        `;
-                    });
-            
-                    resultsDiv.innerHTML = html;
-                } else {
-                    resultsDiv.innerHTML = `
-                        <div class="info-item">查询平台: <strong>${platform}</strong></div>
-                        <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
-                        <hr>
-                        <div class="error">未找到该手机号的中奖记录</div>
+                        </div>
                     `;
-                }
+                });
+                
+                resultsDiv.innerHTML = resultsHTML;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="info-item">查询手机号: <strong>${phoneNumber}</strong></div>
+                    <hr>
+                    <div>未找到该手机号的记录。</div>
+                `;
             }
-        </script>
-    
-        // 页面加载完成后自动加载数据库
-        window.addEventListener('DOMContentLoaded', loadDatabase);
+        }
     </script>
 </body>
 </html>
