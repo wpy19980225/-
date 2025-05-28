@@ -122,10 +122,16 @@
         </div>
         <div id="results">请输入手机号码进行查询</div>
     </div>
-</body>
-</html>
-
-        <script>
+    <script>
+            // 添加列配置
+            const columnConfig = {
+                phone: '手机号码',
+                prize: '奖品名称',
+                status: '订单状态',
+                tracking: '快递单号',
+                date: '日期'
+            };
+            
             // 修改数据库结构以支持多个sheet
             let database = {
                 '小红书': null,
@@ -134,8 +140,8 @@
             
             async function loadDatabase() {
                 try {
-                    // 修改loadDatabase函数中的fetch URL
-                    const response = await fetch('https://raw.githubusercontent.com/您的用户名/仓库名/main/database.xlsx');
+                    // 修改为本地文件路径
+                    const response = await fetch('./database.xlsx');
                     if (!response.ok) {
                         throw new Error('数据文件加载失败');
                     }
@@ -186,6 +192,8 @@
                     });
             
                     console.log('数据加载成功');
+                    // 添加加载成功的提示
+                    document.getElementById('results').innerHTML = '系统已就绪，请输入手机号码进行查询';
                 } catch (error) {
                     console.error("数据加载错误:", error);
                     document.getElementById('results').innerHTML = `<span class="error">数据加载失败：${error.message}</span>`;
@@ -261,5 +269,9 @@
                 }
             }
         </script>
+    
+        // 页面加载完成后自动加载数据库
+        window.addEventListener('DOMContentLoaded', loadDatabase);
+    </script>
 </body>
 </html>
